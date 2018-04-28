@@ -3,6 +3,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <stdint.h>
 
 // Store PPM image data
 typedef struct {
