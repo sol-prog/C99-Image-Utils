@@ -11,7 +11,6 @@ typedef struct {
     int height;
     int max_val;
     uint8_t *pixels;
-    char *file_name;
     char file_format[3];
 } PGMImage;
 

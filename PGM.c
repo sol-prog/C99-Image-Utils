@@ -7,7 +7,7 @@
 #include "PGM.h"
 #include "macro_utils.h"
 
-static FILE *readPGMHeader(PGMImage *pgm);
+static FILE *readPGMHeader(PGMImage *pgm, const char *file_name);
 static void readPGMBody(PGMImage *pgm, FILE *fd);
 static void read_dummy_line(FILE *fd);
 static void read_comments_line(FILE *fd);
@@ -19,11 +19,9 @@ PGMImage *createPGM(const char* fname) {
     pgm->width = 0;
     pgm->height = 0;
 
-    pgm->file_name = strdup(fname);
-    ON_ERROR_EXIT(pgm->file_name == NULL, " ");
     strncpy(pgm->file_format, "P2", sizeof(pgm->file_format));
 
-    FILE *fd = readPGMHeader(pgm);
+    FILE *fd = readPGMHeader(pgm, fname);
 
     pgm->pixels = malloc(sizeof(uint8_t) * pgm->width * pgm->height);
     ON_ERROR_EXIT(pgm->pixels == NULL, " ");
@@ -43,7 +41,6 @@ PGMImage *creatEmptyPGM(int width, int height) {
     pgm->pixels = calloc(width * height, sizeof(uint8_t));
     ON_ERROR_EXIT(pgm->pixels == NULL, " ");
 
-    pgm->file_name = NULL;
     strncpy(pgm->file_format, "P2", sizeof(pgm->file_format));
 
     return pgm;
@@ -62,7 +59,6 @@ PGMImage *createPGMFromArray(uint8_t *data, int width, int height, int max_val) 
 
     memcpy(pgm->pixels, data, width * height * sizeof(uint8_t));
 
-    pgm->file_name = NULL;
     strncpy(pgm->file_format, "P2", sizeof(pgm->file_format));
 
     return pgm;
@@ -71,15 +67,13 @@ PGMImage *createPGMFromArray(uint8_t *data, int width, int height, int max_val) 
 void destroyPGM(PGMImage *pgm) {
     if(pgm->pixels != NULL) free(pgm->pixels);
     pgm->pixels = NULL;
-    if(pgm->file_name != NULL) free(pgm->file_name);
-    pgm->file_name = NULL;
     if(pgm != NULL) free(pgm);
     pgm = NULL;
 }
 
-FILE *readPGMHeader(PGMImage *pgm) {
+FILE *readPGMHeader(PGMImage *pgm, const char *file_name) {
     ON_ERROR_EXIT(pgm == NULL, "The input PGM image was not initialized.");
-    FILE *fd = fopen(pgm->file_name, "rb");
+    FILE *fd = fopen(file_name, "rb");
     ON_ERROR_EXIT(fd == NULL, "Unable to open the file name store in the input PGM image.");
 
     fread(pgm->file_format, sizeof(uint8_t), 2, fd);

@@ -7,7 +7,7 @@
 #include "PPM.h"
 #include "macro_utils.h"
 
-static FILE *readPPMHeader(PPMImage *ppm);
+static FILE *readPPMHeader(PPMImage *ppm, const char *file_name);
 static void readPPMBody(PPMImage *ppm, FILE *fd);
 static void read_dummy_line(FILE *fd);
 static void read_comments_line(FILE *fd);
@@ -19,11 +19,9 @@ PPMImage *createPPM(const char* fname) {
     ppm->width = 0;
     ppm->height = 0;
 
-    ppm->file_name = strdup(fname);
-    ON_ERROR_EXIT(ppm->file_name == NULL, " ");
     strncpy(ppm->file_format, "P3", sizeof(ppm->file_format));
 
-    FILE *fd = readPPMHeader(ppm);
+    FILE *fd = readPPMHeader(ppm, fname);
 
     ppm->pixels = malloc(sizeof(uint8_t) * ppm->width * ppm->height * 3);
     ON_ERROR_EXIT(ppm->pixels == NULL, " ");
@@ -43,7 +41,6 @@ PPMImage *createEmptyPPM(int width, int height) {
     ppm->pixels = calloc(ppm->width * ppm->height * 3, sizeof(uint8_t));
     ON_ERROR_EXIT(ppm->pixels == NULL, " ");
 
-    ppm->file_name = NULL;
     strncpy(ppm->file_format, "P3", sizeof(ppm->file_format));
 
     return ppm;
@@ -53,8 +50,6 @@ PPMImage *createEmptyPPM(int width, int height) {
 void destroyPPM(PPMImage *ppm) {
     if(ppm->pixels != NULL) free(ppm->pixels);
     ppm->pixels = NULL;
-    if(ppm->file_name != NULL) free(ppm->file_name);
-    ppm->file_name = NULL;
     if(ppm != NULL) free(ppm);
     ppm = NULL;
 }
@@ -80,9 +75,9 @@ void read_comments_line(FILE *fd) {
     }
 }
 
-FILE *readPPMHeader(PPMImage *ppm) {
+FILE *readPPMHeader(PPMImage *ppm, const char *file_name) {
     ON_ERROR_EXIT(ppm == NULL, "The input PPM image was not initialized.");
-    FILE *fd = fopen(ppm->file_name, "rb");
+    FILE *fd = fopen(file_name, "rb");
     ON_ERROR_EXIT(fd == NULL, "Unable to open the file name store in the input PPM image.");
 
     fread(ppm->file_format, sizeof(uint8_t), 2, fd);
@@ -174,7 +169,6 @@ PGMImage *PPMtoPGM(PPMImage *ppm) {
     pgm->width = ppm->width;
     pgm->height = ppm->height;
     pgm->max_val = ppm->max_val;
-    pgm->file_name = NULL;
     pgm->pixels = getPPMChannel(ppm, 0);
     return pgm;
 }
