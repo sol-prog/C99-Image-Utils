@@ -2,26 +2,15 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
 
 #include "PPM.h"
+#include "macro_utils.h"
 
 static FILE *readPPMHeader(PPMImage *ppm);
 static void readPPMBody(PPMImage *ppm, FILE *fd);
 static void read_dummy_line(FILE *fd);
 static void read_comments_line(FILE *fd);
-
-# if !defined ON_ERROR_EXIT
-    // Error utility macro
-    #define ON_ERROR_EXIT(p, message) \
-    do { \
-        if((p)) { \
-            printf("Error in function: \"%s\" at line: %d\n", __func__, __LINE__); \
-            perror((message)); \
-            exit(1); \
-        } \
-    } while(0)
-#endif
-
 
 PPMImage *createPPM(const char* fname) {
     PPMImage *ppm = malloc(sizeof(PPMImage));
@@ -82,7 +71,6 @@ void read_comments_line(FILE *fd) {
 
     for(;;) {
         fread(&dummy, sizeof(char), 1, fd);
-        // printf("%c\n", dummy);
         if(dummy == '#') {
             read_dummy_line(fd);
         } else {
@@ -129,6 +117,11 @@ void readPPMBody(PPMImage *ppm, FILE *fd) {
             fscanf(fd, "%d", &val);
             ppm->pixels[i] = (uint8_t) val;
         }
+    } else {
+        printf("Invalid file format for PPM images: %s\n", ppm->file_format);
+        destroyPPM(ppm);
+        fclose(fd);
+        exit(1);
     }
 
     fclose(fd);
@@ -174,44 +167,14 @@ uint8_t *getPPMChannel(PPMImage *ppm, int channel) {
     return ch;
 }
 
-void savePGM(uint8_t *data, int width, int height, int max_val, const char *fname) {
-    ON_ERROR_EXIT(data == NULL, "The input data image was not initialized.");
-    FILE *fd = fopen(fname, "wb");
-    ON_ERROR_EXIT(fd == NULL, "Unable to open file for saving the input image");
-
-    fprintf(fd, "P5\n");
-    fprintf(fd, "%d %d\n", width, height);
-    fprintf(fd, "%d\n", max_val);
-    fwrite(data, sizeof(uint8_t), width * height, fd);
-    fclose(fd);
-}
-
-
-/*
-// Usage example:
-int main(void) {
-    // Read a binary PPM file
-    PPMImage *ppm = createPPM("test.ppm");
-    savePPM(ppm, "test_bin_out.ppm");
+PGMImage *PPMtoPGM(PPMImage *ppm) {
     convertPPMToGray(ppm);
-    savePPM(ppm, "test_gray.ppm");
-
-    uint8_t *data = getPPMChannel(ppm, 1);
-    savePGM(data, ppm->width, ppm->height, ppm->max_val, "test.pgm");
-
-    // Create an empty PPM image
-    PPMImage *ppm2 = createEmptyPPM(256, 256);
-    savePPM(ppm2, "test_empty.ppm");
-
-    // Read an ascii PPM file
-    PPMImage *ppm3 = createPPM("test_ascii.ppm");
-    savePPM(ppm3, "test_ascii_out.ppm");
-
-
-    destroyPPM(ppm);
-    destroyPPM(ppm2);
-    destroyPPM(ppm3);
-    free(data);
-    return 0;
+    PGMImage *pgm = malloc(sizeof(PGMImage));
+    ON_ERROR_EXIT(pgm == NULL, "Memory allocation error");
+    pgm->width = ppm->width;
+    pgm->height = ppm->height;
+    pgm->max_val = ppm->max_val;
+    pgm->pixels = getPPMChannel(ppm, 0);
+    return pgm;
 }
-*/
+
