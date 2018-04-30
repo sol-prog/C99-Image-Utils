@@ -57,7 +57,7 @@ void destroyPPM(PPMImage *ppm) {
 void read_dummy_line(FILE *fd) {
     char dummy = '\0';
     while(dummy != '\n') {
-        fread(&dummy, sizeof(char), 1, fd);
+        ON_ERROR_EXIT(1 != fread(&dummy, sizeof(char), 1, fd), "");
     }
 }
 
@@ -65,7 +65,7 @@ void read_comments_line(FILE *fd) {
     char dummy = '\0';
 
     for(;;) {
-        fread(&dummy, sizeof(char), 1, fd);
+        ON_ERROR_EXIT(1 != fread(&dummy, sizeof(char), 1, fd), "");
         if(dummy == '#') {
             read_dummy_line(fd);
         } else {
@@ -80,17 +80,17 @@ FILE *readPPMHeader(PPMImage *ppm, const char *file_name) {
     FILE *fd = fopen(file_name, "rb");
     ON_ERROR_EXIT(fd == NULL, "Unable to open the file name store in the input PPM image.");
 
-    fread(ppm->file_format, sizeof(uint8_t), 2, fd);
+    ON_ERROR_EXIT(2 != fread(ppm->file_format, sizeof(uint8_t), 2, fd), "");
     read_dummy_line(fd);
 
     read_comments_line(fd);
 
-    fscanf(fd, "%d", &ppm->width);
-    fscanf(fd, "%d", &ppm->height);
+    ON_ERROR_EXIT(1 != fscanf(fd, "%d", &ppm->width), "");
+    ON_ERROR_EXIT(1 != fscanf(fd, "%d", &ppm->height), "");
 
     read_dummy_line(fd);
 
-    fscanf(fd, "%d", &ppm->max_val);
+    ON_ERROR_EXIT(1 != fscanf(fd, "%d", &ppm->max_val), "");
     ON_ERROR_EXIT(ppm->max_val > 255 || ppm->max_val <= 0, "Max Val must be a positive number less or equal 255!");
     read_dummy_line(fd);
 
@@ -102,14 +102,11 @@ void readPPMBody(PPMImage *ppm, FILE *fd) {
     ON_ERROR_EXIT(fd == NULL, "Unable to open the file name store in the input PPM image.");
 
     if(!strcmp(ppm->file_format, "P6")) {
-        size_t read_inputs = fread(ppm->pixels, sizeof(uint8_t), ppm->width * ppm->height * 3, fd);
-        if(read_inputs != ppm->width * ppm->height * 3) {
-            printf("Warning ... not enough data ...");
-        }
+        ON_ERROR_EXIT(ppm->width * ppm->height * 3 != fread(ppm->pixels, sizeof(uint8_t), ppm->width * ppm->height * 3, fd), "");
     } else if(!strcmp(ppm->file_format, "P3")) {
         int val;
         for(int i = 0; i < ppm->width * ppm->height * 3; ++i) {
-            fscanf(fd, "%d", &val);
+            ON_ERROR_EXIT(1 != fscanf(fd, "%d", &val), "");
             ppm->pixels[i] = (uint8_t) val;
         }
     } else {

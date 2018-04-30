@@ -75,18 +75,17 @@ FILE *readPGMHeader(PGMImage *pgm, const char *file_name) {
     ON_ERROR_EXIT(pgm == NULL, "The input PGM image was not initialized.");
     FILE *fd = fopen(file_name, "rb");
     ON_ERROR_EXIT(fd == NULL, "Unable to open the file name store in the input PGM image.");
-
-    fread(pgm->file_format, sizeof(uint8_t), 2, fd);
+    ON_ERROR_EXIT(2 != fread(pgm->file_format, sizeof(uint8_t), 2, fd), " ");
     read_dummy_line(fd);
 
     read_comments_line(fd);
 
-    fscanf(fd, "%d", &pgm->width);
-    fscanf(fd, "%d", &pgm->height);
+    ON_ERROR_EXIT(1 != fscanf(fd, "%d", &pgm->width), "");
+    ON_ERROR_EXIT(1 != fscanf(fd, "%d", &pgm->height), "");
 
     read_dummy_line(fd);
 
-    fscanf(fd, "%d", &pgm->max_val);
+    ON_ERROR_EXIT(1 != fscanf(fd, "%d", &pgm->max_val), "");
     ON_ERROR_EXIT(pgm->max_val > 255 || pgm->max_val <= 0, "Max Val must be a positive number less or equal 255!");
     read_dummy_line(fd);
 
@@ -98,14 +97,11 @@ void readPGMBody(PGMImage *pgm, FILE *fd) {
     ON_ERROR_EXIT(fd == NULL, "Unable to open the file name store in the input PGM image.");
 
     if(!strcmp(pgm->file_format, "P5")) {
-        size_t read_inputs = fread(pgm->pixels, sizeof(uint8_t), pgm->width * pgm->height, fd);
-        if(read_inputs != pgm->width * pgm->height) {
-            printf("Warning ... not enough data ...");
-        }
+        ON_ERROR_EXIT(pgm->width * pgm->height != fread(pgm->pixels, sizeof(uint8_t), pgm->width * pgm->height, fd), "");
     } else if(!strcmp(pgm->file_format, "P2")) {
         int val;
         for(int i = 0; i < pgm->width * pgm->height; ++i) {
-            fscanf(fd, "%d", &val);
+            ON_ERROR_EXIT(1 != fscanf(fd, "%d", &val), "");
             pgm->pixels[i] = (uint8_t) val;
         }
     } else {
@@ -133,7 +129,7 @@ void savePGM(PGMImage *pgm, const char *fname) {
 void read_dummy_line(FILE *fd) {
     char dummy = '\0';
     while(dummy != '\n') {
-        fread(&dummy, sizeof(char), 1, fd);
+        ON_ERROR_EXIT(1 != fread(&dummy, sizeof(char), 1, fd), "");
     }
 }
 
@@ -141,7 +137,7 @@ void read_comments_line(FILE *fd) {
     char dummy = '\0';
 
     for(;;) {
-        fread(&dummy, sizeof(char), 1, fd);
+        ON_ERROR_EXIT(1 != fread(&dummy, sizeof(char), 1, fd), "");
         if(dummy == '#') {
             read_dummy_line(fd);
         } else {
