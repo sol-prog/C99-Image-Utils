@@ -174,6 +174,7 @@ PGMImage *PPMtoPGM(PPMImage *ppm) {
     pgm->width = ppm->width;
     pgm->height = ppm->height;
     pgm->max_val = ppm->max_val;
+    pgm->file_name = NULL;
     pgm->pixels = getPPMChannel(ppm, 0);
     return pgm;
 }

@@ -25,11 +25,3 @@ PGMImage *createPGMFromArray(uint8_t *data, int width, int height, int max_val);
 void savePGM(PGMImage *pgm, const char *fname);
 // Free the PGM image structure
 void destroyPGM(PGMImage *ppm);
-
-
-// // Convert pixel intensities from 0 .. 255 to the interval [0, 1]. The normalized data is stored in pgm->normalized_data
-// void normalizePGM(PGMImage *pgm);
-// // Convert pixel intensities from the interval [0, 1] to the range 0 .. 255.
-// void denormalizePGMData(PGMImage *pgm, float *data);
-// // Convert values from the interval [min_d, max_d] to the range 0 .. 255.
-// void denormalizeAndScalePGMData(PGMImage *pgm, float *data, float min_d, float max_d);

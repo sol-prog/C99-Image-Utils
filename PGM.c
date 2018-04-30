@@ -57,8 +57,10 @@ PGMImage *createPGMFromArray(uint8_t *data, int width, int height, int max_val) 
     pgm->height = height;
     pgm->max_val = max_val;
 
-    pgm->pixels = data;
-    data = NULL;
+    pgm->pixels = malloc(sizeof(uint8_t) * pgm->width * pgm->height);
+    ON_ERROR_EXIT(pgm->pixels == NULL, " ");
+
+    memcpy(pgm->pixels, data, width * height * sizeof(uint8_t));
 
     pgm->file_name = NULL;
     strncpy(pgm->file_format, "P2", sizeof(pgm->file_format));
