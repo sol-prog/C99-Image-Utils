@@ -24,3 +24,7 @@ PGMImage *createPGMFromArray(uint8_t *data, int width, int height, int max_val);
 void savePGM(PGMImage *pgm, const char *fname);
 // Free the PGM image structure
 void destroyPGM(PGMImage *ppm);
+// Flip image horizontally (in place)
+void flipPGMHorizontally(PGMImage *ppm);
+// Flip image verically (in place)
+void flipPGMVertically(PGMImage *ppm);

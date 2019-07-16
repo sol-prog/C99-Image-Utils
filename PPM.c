@@ -102,7 +102,7 @@ void readPPMBody(PPMImage *ppm, FILE *fd) {
     ON_ERROR_EXIT(fd == NULL, "Unable to open the file name store in the input PPM image.");
 
     if(!strcmp(ppm->file_format, "P6")) {
-        ON_ERROR_EXIT(ppm->width * ppm->height * 3 != fread(ppm->pixels, sizeof(uint8_t), ppm->width * ppm->height * 3, fd), "");
+        ON_ERROR_EXIT((size_t)(ppm->width * ppm->height * 3) != fread(ppm->pixels, sizeof(uint8_t), ppm->width * ppm->height * 3, fd), "");
     } else if(!strcmp(ppm->file_format, "P3")) {
         int val;
         for(int i = 0; i < ppm->width * ppm->height * 3; ++i) {
@@ -166,7 +166,49 @@ PGMImage *PPMtoPGM(PPMImage *ppm) {
     pgm->width = ppm->width;
     pgm->height = ppm->height;
     pgm->max_val = ppm->max_val;
-    pgm->pixels = getPPMChannel(ppm, 0);
+    pgm->pixels = malloc(sizeof(uint8_t) * pgm->width * pgm->height);
+    ON_ERROR_EXIT(pgm->pixels == NULL, "Memory allocation error");
+
+    for(int y = 0; y < pgm->height; ++y) {
+        for(int x = 0; x < pgm->width; ++x) {
+            int index_ppm = 3 * (y * ppm->width + x);
+            int index_pgm = y * pgm->width + x;
+            pgm->pixels[index_pgm] = (ppm->pixels[index_ppm] + ppm->pixels[index_ppm + 1] + ppm->pixels[index_ppm + 2]) / 3;
+        }
+    }    
     return pgm;
 }
 
+static inline void swapColors(uint8_t *col_a, uint8_t *col_b) {
+    uint8_t col = *col_a;
+    *col_a = *col_b;
+    *col_b = col;
+}
+
+void flipPPMHorizontally(PPMImage *ppm) {
+    int half_width = ppm->width / 2;
+    for(int y = 0; y < ppm->height; ++y) {
+        for(int x = 0; x < half_width; ++x) {
+            int index_a = 3 * (y * ppm->width + x);
+            int index_b = 3 * (y * ppm->width + (ppm->width - x));            
+
+            swapColors(&ppm->pixels[index_a + 0], &ppm->pixels[index_b + 0]);
+            swapColors(&ppm->pixels[index_a + 1], &ppm->pixels[index_b + 1]);
+            swapColors(&ppm->pixels[index_a + 2], &ppm->pixels[index_b + 2]);
+        }
+    }
+}
+
+void flipPPMVertically(PPMImage *ppm) {
+    int half_height = ppm->height / 2;
+    for(int y = half_height; y < ppm->height; ++y) {
+        for(int x = 0; x < ppm->width; ++x) {
+            int index_a = 3 * (y * ppm->width + x);
+            int index_b = 3 * ((ppm->height - y) * ppm->width + x);
+
+            swapColors(&ppm->pixels[index_a + 0], &ppm->pixels[index_b + 0]);
+            swapColors(&ppm->pixels[index_a + 1], &ppm->pixels[index_b + 1]);
+            swapColors(&ppm->pixels[index_a + 2], &ppm->pixels[index_b + 2]);
+        }
+    }
+}

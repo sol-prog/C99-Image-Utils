@@ -29,5 +29,9 @@ void convertPPMToGray(PPMImage *ppm);
 // Extract one of the R, G, B channels from the PPM image.
 // The user needs to free the memory for the returned pointer.
 uint8_t *getPPMChannel(PPMImage *ppm, int channel);
-// Convenience function to convert a PPM image to PGM. The input PPM is also modified!
+// Convenience function to convert a PPM image to PGM. The input PPM is not modified
 PGMImage *PPMtoPGM(PPMImage *ppm);
+// Flip image horizontally (in place)
+void flipPPMHorizontally(PPMImage *ppm);
+// Flip image verically (in place)
+void flipPPMVertically(PPMImage *ppm);

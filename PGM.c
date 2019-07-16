@@ -97,7 +97,7 @@ void readPGMBody(PGMImage *pgm, FILE *fd) {
     ON_ERROR_EXIT(fd == NULL, "Unable to open the file name store in the input PGM image.");
 
     if(!strcmp(pgm->file_format, "P5")) {
-        ON_ERROR_EXIT(pgm->width * pgm->height != fread(pgm->pixels, sizeof(uint8_t), pgm->width * pgm->height, fd), "");
+        ON_ERROR_EXIT((size_t)(pgm->width * pgm->height) != fread(pgm->pixels, sizeof(uint8_t), pgm->width * pgm->height, fd), "");
     } else if(!strcmp(pgm->file_format, "P2")) {
         int val;
         for(int i = 0; i < pgm->width * pgm->height; ++i) {
@@ -143,6 +143,36 @@ void read_comments_line(FILE *fd) {
         } else {
             fseek(fd, -sizeof(char), SEEK_CUR);
             break;
+        }
+    }
+}
+
+static inline void swapColors(uint8_t *col_a, uint8_t *col_b) {
+    uint8_t col = *col_a;
+    *col_a = *col_b;
+    *col_b = col;
+}
+
+void flipPGMHorizontally(PGMImage *ppm) {
+    int half_width = ppm->width / 2;
+    for(int y = 0; y < ppm->height; ++y) {
+        for(int x = 0; x < half_width; ++x) {
+            int index_a = y * ppm->width + x;
+            int index_b = y * ppm->width + (ppm->width - x);
+
+            swapColors(&ppm->pixels[index_a], &ppm->pixels[index_b]);
+        }
+    }
+}
+
+void flipPGMVertically(PGMImage *ppm) {
+    int half_height = ppm->height / 2;
+    for(int y = half_height; y < ppm->height; ++y) {
+        for(int x = 0; x < ppm->width; ++x) {
+            int index_a = y * ppm->width + x;
+            int index_b = (ppm->height - y) * ppm->width + x;
+
+            swapColors(&ppm->pixels[index_a], &ppm->pixels[index_b]);
         }
     }
 }
