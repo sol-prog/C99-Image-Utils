@@ -159,7 +159,7 @@ uint8_t *getPPMChannel(PPMImage *ppm, int channel) {
     return ch;
 }
 
-PGMImage *PPMtoPGM(PPMImage *ppm) {
+PGMImage *PGMFromPPM(PPMImage *ppm) {
     PGMImage *pgm = malloc(sizeof(PGMImage));
     ON_ERROR_EXIT(pgm == NULL, "Memory allocation error");
     pgm->width = ppm->width;

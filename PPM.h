@@ -24,13 +24,14 @@ PPMImage *createEmptyPPM(int width, int height);
 void savePPM(PPMImage *ppm, const char *fname);
 // Free the PPM image structure
 void destroyPPM(PPMImage *ppm);
-// Convert the PPM image to a gray image
+// Convert the PPM image to a gray image the image is modified in place
 void convertPPMToGray(PPMImage *ppm);
 // Extract one of the R, G, B channels from the PPM image.
 // The user needs to free the memory for the returned pointer.
 uint8_t *getPPMChannel(PPMImage *ppm, int channel);
-// Convenience function to convert a PPM image to PGM. The input PPM is not modified
-PGMImage *PPMtoPGM(PPMImage *ppm);
+// Convenience function to create a PGM image from a PPM image.
+// The input PPM image is not modified
+PGMImage *PGMFromPPM(PPMImage *ppm);
 // Flip image horizontally (in place)
 void flipPPMHorizontally(PPMImage *ppm);
 // Flip image verically (in place)
